@@ -1,6 +1,5 @@
 package com.tus.charactersheet.controllers;
 
-import com.tus.charactersheet.model.*;
 import com.tus.charactersheet.model.Character;
 import com.tus.charactersheet.service.CharacterSheetService;
 
