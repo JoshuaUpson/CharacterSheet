@@ -2,11 +2,18 @@ package com.tus.charactersheet.model;
 
 import java.util.List;
 
-public class Character {
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
+public class Character {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private List<Attribute> attributes;
+    private String race;
+    private String stats;
+   
 
     public Long getId() {
         return id;
@@ -23,12 +30,18 @@ public class Character {
     public void setName(String name) {
         this.name = name;
     }
-
-    public List<Attribute> getAttributes() {
-        return attributes;
+    public void setRace(String race) {
+    	this.race = race;
+    }
+    public String getRace() {
+    	return race;
+    }
+    public void setStats(String stats) {
+    	this.stats = stats;
+    }
+    public String getStats() {
+    	return stats;
     }
 
-    public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
-    }
+  
 }

@@ -1,140 +1,102 @@
 package com.tus.charactersheet.controllers;
 
 import com.tus.charactersheet.model.Character;
-import com.tus.charactersheet.service.CharacterSheetService;
+import com.tus.charactersheet.repos.CharacterRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.internal.verification.Times;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class CharacterSheetControllerTest {
-
-    private CharacterSheetController characterSheetController;
-    private CharacterSheetService characterSheetService;
-
-    @BeforeEach
-    public void setUp() {
-        characterSheetService = new CharacterSheetService();
-        characterSheetController = new CharacterSheetController();
-    }
-
-    @Test
-    public void testGetAllCharacters() {
-        // Setup
-        List<Character> characters = new ArrayList<>();
-        Character character = new Character();
-        character.setName("Gandalf");
-        characters.add(character);
-        characterSheetService.saveOrUpdateCharacter(character);
-
-        // Execution
-        ResponseEntity<List<Character>> responseEntity = characterSheetController.getAllCharacters();
-        List<Character> responseCharacters = responseEntity.getBody();
-
-        // Verification
-        assertNotNull(responseCharacters);
-        assertEquals(1, responseCharacters.size());
-        assertEquals("Gandalf", responseCharacters.get(0).getName());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void testGetCharacterById() {
-        // Setup
-        Long id = 1L;
-        Character character = new Character();
-        character.setName("Frodo");
-        character.setId(id);
-        characterSheetService.saveOrUpdateCharacter(character);
-
-        // Execution
-        ResponseEntity<Character> responseEntity = characterSheetController.getCharacterById(id);
-        Character responseCharacter = responseEntity.getBody();
-
-        // Verification
-        assertNotNull(responseCharacter);
-        assertEquals("Frodo", responseCharacter.getName());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void testGetCharacterByIdNotFound() {
-        // Setup
-        Long id = 1L;
-
-        // Execution
-        ResponseEntity<Character> responseEntity = characterSheetController.getCharacterById(id);
-
-        // Verification
-        assertNull(responseEntity.getBody());
-        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-    }
+@SpringBootTest
+class CharacterSheetControllerTest {
+	@Autowired
+    CharacterSheetController characterSheetController;
+	
+	@MockBean
+	CharacterRepository  repo;
+	
+	@Captor
+	ArgumentCaptor<Character> captor;
+   
 
     @Test
     public void testCreateCharacter() {
-        // Setup
-        Character character = new Character();
-        character.setName("Gimli");
-
-        // Execution
-        ResponseEntity<Character> responseEntity = characterSheetController.createCharacter(character);
-        Character responseCharacter = responseEntity.getBody();
-
-        // Verification
-        assertNotNull(responseCharacter);
-        assertEquals("Gimli", responseCharacter.getName());
-        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
+    	Character character = makeCharacter();
+    	Character characterSaved=makeCharacter();
+    	characterSaved.setId(1L);
+    	when(repo.save(any())).thenReturn(characterSaved);
+    	Character characterReturn = characterSheetController.create(character);
+    	assertEquals(characterReturn.getId(),1L);
+    	assertEquals(characterReturn.getName(),"Gandalf");
+    	assertEquals(characterReturn.getRace(),"Human");
+    	assertEquals(characterReturn.getStats(),"Intellect");
+    	verify(repo, new Times(1)).save(captor.capture());
     }
-
+    
     @Test
-    public void testUpdateCharacter() {
-        // Setup
-        Long id = 1L;
-        Character character = new Character();
-        character.setName("Legolas");
-        character.setId(id);
-        characterSheetService.saveOrUpdateCharacter(character);
-
-        // Execution
-        ResponseEntity<Character> responseEntity = characterSheetController.updateCharacter(id, character);
-        Character responseCharacter = responseEntity.getBody();
-
-        // Verification
-        assertNotNull(responseCharacter);
-        assertEquals("Legolas", responseCharacter.getName());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    void testGetCharacterByName() {
+    	Character characterSaved=makeCharacter();
+    	characterSaved.setId(1L);
+    	when(repo.findByName("Gandalf")).thenReturn(characterSaved);
+    	Character characterReturn = characterSheetController.getName("Gandalf");
+    	assertEquals(characterReturn.getId(),1L);
+    	assertEquals(characterReturn.getName(),"Gandalf");
+    	assertEquals(characterReturn.getRace(),"Human");
+    	assertEquals(characterReturn.getStats(),"Intellect");
+    	verify(repo, new Times(1)).findByName("Gandalf");
     }
-
+    
+    @Test 
+    void testGetCharacterByStats(){
+    	Character characterSaved=makeCharacter();
+    	characterSaved.setId(1L);
+    	when(repo.findByStats("Intellect")).thenReturn(characterSaved);
+    	Character characterReturn = characterSheetController.getStats("Intellect");
+    	assertEquals(characterReturn.getId(),1L);
+    	assertEquals(characterReturn.getName(),"Gandalf");
+    	assertEquals(characterReturn.getRace(),"Human");
+    	assertEquals(characterReturn.getStats(),"Intellect");
+    	verify(repo, new Times(1)).findByStats("Intellect");
+    }
+    
     @Test
-    public void testUpdateCharacterNotFound() {
-        // Setup
-        Long id = 1L;
-        Character character = new Character();
-        character.setName("Legolas");
-        character.setId(id);
-
-        // Mock the saveOrUpdateCharacter() method to return null
-        characterSheetController = new CharacterSheetController() {
-            @Override
-            public ResponseEntity<Character> updateCharacter(Long id, Character character) {
-                return ResponseEntity.notFound().build();
-            }
-        };
-
-        // Execution
-        ResponseEntity<Character> responseEntity = characterSheetController.updateCharacter(id, character);
-
-        // Verification
-        assertNull(responseEntity.getBody());
-        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+    void testFindAllCharacter() {
+    	Character characterSaved=makeCharacter();
+    	characterSaved.setId(1L);
+    	ArrayList<Character> characters = new ArrayList<>();
+    	characters.add(characterSaved);
+    	when(repo.findAll()).thenReturn(characters);
+    	List<Character> charactersFound = characterSheetController.getAllCharacters();
+    	Character characterFound = charactersFound.get(0);
+    	assertEquals(characterFound.getId(),1L);
+    	assertEquals(characterFound.getName(),"Gandalf");
+    	assertEquals(characterFound.getRace(),"Human");
+    	assertEquals(characterFound.getStats(),"Intellect");
+    	verify(repo, new Times(1)).findAll();
+    }
+    private Character makeCharacter() {
+    	Character character = new Character();
+    	character.setName("Gandalf");
+    	character.setRace("Human");
+    	character.setStats("Intellect");
+    	return character;
     }
 }
-
-       
