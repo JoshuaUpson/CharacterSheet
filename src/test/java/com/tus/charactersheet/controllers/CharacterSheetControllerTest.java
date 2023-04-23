@@ -95,6 +95,7 @@ class CharacterSheetControllerTest {
     @Test 
     void testTests() {
     	
+    	//hello
     }
     private Character makeCharacter() {
     	Character character = new Character();
