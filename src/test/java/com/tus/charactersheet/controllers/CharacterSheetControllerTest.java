@@ -92,6 +92,10 @@ class CharacterSheetControllerTest {
     	assertEquals(characterFound.getStats(),"Intellect");
     	verify(repo, new Times(1)).findAll();
     }
+    @Test 
+    void testTests() {
+    	
+    }
     private Character makeCharacter() {
     	Character character = new Character();
     	character.setName("Gandalf");
@@ -99,4 +103,5 @@ class CharacterSheetControllerTest {
     	character.setStats("Intellect");
     	return character;
     }
+    
 }
